@@ -1,0 +1,80 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            06:59:72:4b:e9:91:5d:c2:fc:98:25:09:d3:44:d3:f9:0d:7f:c8:77
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=pg.myia.io
+        Validity
+            Not Before: Jun 11 10:30:17 2026 GMT
+            Not After : Jun  8 10:30:17 2036 GMT
+        Subject: CN=pg.myia.io
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:9e:fc:a7:a5:8c:6e:f5:d4:3d:04:93:a5:45:7d:
+                    64:fa:7d:1c:63:35:92:12:66:63:f4:59:35:9e:01:
+                    05:a3:b5:dc:16:43:bf:b7:72:2c:62:ae:1a:ec:7c:
+                    ae:9d:0c:15:ba:0b:f0:db:c2:de:8e:fd:10:c7:9d:
+                    c3:65:69:36:64:d0:45:16:1a:ac:93:57:c7:12:3e:
+                    1e:ee:91:86:2e:ff:26:fc:76:49:d1:d2:8a:a0:8c:
+                    e8:66:be:61:60:4f:b2:84:6b:b4:cb:35:e3:de:88:
+                    ec:fc:81:17:71:03:8f:21:20:82:36:8f:ea:0e:ac:
+                    52:9a:48:21:cc:f4:4b:5f:f2:df:91:99:32:f1:14:
+                    c0:a5:04:77:11:3a:89:63:64:9e:52:64:ad:f4:a0:
+                    40:5b:6e:33:ae:9a:f2:14:58:55:68:f0:cc:8c:83:
+                    8b:c1:15:cd:1f:ca:95:ea:bf:42:56:28:75:02:e4:
+                    fb:ff:ef:e1:94:c6:bc:14:dc:34:34:14:d4:a7:32:
+                    bf:f2:39:38:f5:79:3d:21:b3:3e:fd:37:42:c3:fa:
+                    67:c1:10:d8:23:d4:a0:cc:b8:e5:21:38:ff:0d:46:
+                    82:cd:ff:56:07:eb:87:3a:ed:2c:3f:15:1a:1b:2c:
+                    1f:92:4d:25:cc:6a:af:a7:bf:9b:69:60:13:26:5f:
+                    65:27
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier: 
+                22:BE:65:D2:FF:77:82:B0:1F:C0:10:4B:9E:02:A1:F6:12:65:62:2C
+            X509v3 Authority Key Identifier: 
+                22:BE:65:D2:FF:77:82:B0:1F:C0:10:4B:9E:02:A1:F6:12:65:62:2C
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Subject Alternative Name: 
+                DNS:pg.myia.io, DNS:localhost, IP Address:127.0.0.1, IP Address:192.168.0.47
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        39:7b:9c:84:b7:f4:be:17:58:01:60:e9:1d:61:72:d5:91:4a:
+        2b:a0:95:0d:fc:64:af:d1:5d:7d:52:9d:33:9e:6d:03:cb:9a:
+        c3:bd:ff:ff:2e:2c:97:2d:53:f1:c8:68:75:8f:7a:ff:03:65:
+        ce:30:7f:67:c6:c5:b7:db:11:44:05:b2:c0:e0:b7:e8:0c:b3:
+        42:ef:12:24:29:7a:f0:ee:04:d6:0a:41:ee:f7:e0:8f:1b:e1:
+        44:27:74:4f:43:45:5b:0f:e9:42:57:22:b0:66:64:16:bd:73:
+        dd:bd:1e:62:d9:09:29:e2:9a:1c:df:c0:41:c4:cc:b3:de:f9:
+        4f:57:76:87:11:97:ad:37:2b:c6:33:55:c1:a7:ab:6b:2d:65:
+        38:ef:30:2d:fa:ea:92:d9:d0:70:d8:f3:ef:87:a3:e3:b2:88:
+        74:3c:a5:63:6e:db:27:a6:c0:68:6e:58:e1:35:66:01:8c:60:
+        3c:90:62:ae:25:1c:a2:c8:98:ea:2f:79:9d:f8:1e:da:9b:c8:
+        1b:bd:4a:18:45:11:e5:a9:02:e4:cf:c5:a7:2b:b8:7b:9b:b6:
+        79:34:cb:53:e0:ca:e9:95:7d:16:52:07:e7:20:e0:3b:6f:8a:
+        07:48:ea:3c:69:40:4d:71:59:d3:b8:03:a8:bc:3c:a1:8f:28:
+        99:9e:43:bd
+-----BEGIN CERTIFICATE-----
+MIIDOjCCAiKgAwIBAgIUBllyS+mRXcL8mCUJ00TT+Q1/yHcwDQYJKoZIhvcNAQEL
+BQAwFTETMBEGA1UEAwwKcGcubXlpYS5pbzAeFw0yNjA2MTExMDMwMTdaFw0zNjA2
+MDgxMDMwMTdaMBUxEzARBgNVBAMMCnBnLm15aWEuaW8wggEiMA0GCSqGSIb3DQEB
+AQUAA4IBDwAwggEKAoIBAQCe/KeljG711D0Ek6VFfWT6fRxjNZISZmP0WTWeAQWj
+tdwWQ7+3cixirhrsfK6dDBW6C/Dbwt6O/RDHncNlaTZk0EUWGqyTV8cSPh7ukYYu
+/yb8dknR0oqgjOhmvmFgT7KEa7TLNePeiOz8gRdxA48hIII2j+oOrFKaSCHM9Etf
+8t+RmTLxFMClBHcROoljZJ5SZK30oEBbbjOumvIUWFVo8MyMg4vBFc0fypXqv0JW
+KHUC5Pv/7+GUxrwU3DQ0FNSnMr/yOTj1eT0hsz79N0LD+mfBENgj1KDMuOUhOP8N
+RoLN/1YH64c67Sw/FRobLB+STSXMaq+nv5tpYBMmX2UnAgMBAAGjgYEwfzAdBgNV
+HQ4EFgQUIr5l0v93grAfwBBLngKh9hJlYiwwHwYDVR0jBBgwFoAUIr5l0v93grAf
+wBBLngKh9hJlYiwwDwYDVR0TAQH/BAUwAwEB/zAsBgNVHREEJTAjggpwZy5teWlh
+Lmlvgglsb2NhbGhvc3SHBH8AAAGHBMCoAC8wDQYJKoZIhvcNAQELBQADggEBADl7
+nIS39L4XWAFg6R1hctWRSiuglQ38ZK/RXX1SnTOebQPLmsO9//8uLJctU/HIaHWP
+ev8DZc4wf2fGxbfbEUQFssDgt+gMs0LvEiQpevDuBNYKQe734I8b4UQndE9DRVsP
+6UJXIrBmZBa9c929HmLZCSnimhzfwEHEzLPe+U9XdocRl603K8YzVcGnq2stZTjv
+MC366pLZ0HDY8++Ho+OyiHQ8pWNu2yemwGhuWOE1ZgGMYDyQYq4lHKLImOoveZ34
+HtqbyBu9ShhFEeWpAuTPxacruHubtnk0y1PgyumVfRZSB+cg4DtvigdI6jxpQE1x
+WdO4A6i8PKGPKJmeQ70=
+-----END CERTIFICATE-----
