@@ -1,0 +1,7 @@
+# Local secrets — never committed (charter: secrets via RooSync GDrive, not git)
+.env
+
+# Local artifacts
+backups/
+logs/
+data/

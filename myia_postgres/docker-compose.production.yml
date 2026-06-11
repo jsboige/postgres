@@ -1,0 +1,74 @@
+# Docker Compose — Production PostgreSQL (unified conversation store)
+# Refs: roo-extensions #2553 / EPIC #2191 — agent charter in ../CLAUDE.md
+# Created: 2026-06-11 (bootstrap)
+
+services:
+  postgres:
+    # Pinned to major 18 on Debian trixie — the latest stable variant of this fork
+    # (18.4-1.pgdg13+1, commit dc8f7ae). This tag tracks 18/trixie/Dockerfile in this
+    # repo; if a patched image is ever needed, replace `image:` with `build: ../18/trixie`.
+    image: postgres:18-trixie
+    container_name: postgres_production
+    restart: unless-stopped
+
+    # Default bridge instead of a per-stack network: this host's Docker address pools
+    # are fully subnetted (dozens of compose stacks) — creating a dedicated network
+    # fails with "all predefined address pools have been fully subnetted". A single-
+    # service stack with a published port needs no private network anyway.
+    network_mode: bridge
+
+    # Postgres 18 images use STOPSIGNAL SIGINT (fast shutdown); give it time to flush.
+    stop_grace_period: 60s
+
+    # Default 64MB /dev/shm starves parallel queries; GIN index work benefits from more.
+    shm_size: 256mb
+
+    env_file:
+      - .env  # POSTGRES_PASSWORD only — local, gitignored, never committed
+
+    environment:
+      - POSTGRES_USER=unified_store
+      - POSTGRES_DB=unified_store
+
+    ports:
+      # Host 5433: host port 5432 is already taken by open-webui-postgres (discovery
+      # 2026-06-11). External path: pg.myia.io:5432 -> NAT (myia-po-2023) -> ai-01:5433.
+      - "5433:5432"
+
+    volumes:
+      # In 18+ the image VOLUME moved from /var/lib/postgresql/data to /var/lib/postgresql
+      # (PGDATA=/var/lib/postgresql/18/docker). Named volume: NTFS bind mounts are
+      # unreliable for pgdata under Docker Desktop, and every other postgres container on
+      # this host already uses named volumes. Resilience = daily pg_dump (D: + GDrive
+      # online-only) + re-ingestion: the store is a derived index (decision 2026-05-29).
+      - pg_unified_data:/var/lib/postgresql
+
+    deploy:
+      resources:
+        limits:
+          # Modest footprint: the store is a relational index (2 tables + GIN), not an
+          # analytics DB; the host's RAM is reserved primarily for vLLM/Qdrant.
+          memory: 4G
+          cpus: '4'
+        reservations:
+          memory: 512M
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unified_store -d unified_store"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  pg_unified_data:
+    name: pg_unified_data
+
+# USAGE:
+# 1. Copy .env.example to .env and set a strong POSTGRES_PASSWORD (gitignored).
+# 2. Start:      docker compose -f docker-compose.production.yml up -d
+# 3. Health:     docker ps --filter name=postgres_production   (STATUS "healthy")
+# 4. Migration:  Get-Content <roo-state-manager>/migrations/001_init_unified_store.sql -Raw |
+#                  docker exec -i postgres_production psql -U unified_store -d unified_store -v ON_ERROR_STOP=1
+# 5. Logs:       docker logs -f postgres_production
+# 6. Clean stop: docker compose -f docker-compose.production.yml down   (data persists in volume)
