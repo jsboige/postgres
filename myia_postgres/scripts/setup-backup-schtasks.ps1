@@ -10,7 +10,15 @@
       pwsh -File D:\postgres\myia_postgres\scripts\setup-backup-schtasks.ps1
 #>
 $ErrorActionPreference = 'Stop'
+$debugLog = 'C:\Temp\schtask-setup-debug.log'
 
+function Write-DebugLog([string]$msg) {
+    Add-Content -Path $debugLog -Value "[$(Get-Date -Format 'HH:mm:ss')] $msg" -Encoding utf8
+}
+
+Write-DebugLog "Script started. IsAdmin: $([Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole('Administrators'))"
+
+try {
 $taskName = 'Postgres-Dump-Daily'
 $script   = 'D:\postgres\myia_postgres\scripts\backup-pgdump.ps1'
 $shared   = 'G:\Mon Drive\Backups-Cloud'
@@ -22,12 +30,8 @@ if ($existing) {
     Write-Host "Unregistered existing task: $taskName"
 }
 
-$action = New-ScheduledTaskAction -Execute 'pwsh.exe' -Argument @(
-    '-NoProfile', '-ExecutionPolicy', 'Bypass',
-    '-File', $script,
-    '-LocalCopyDir', '""',
-    '-SharedPath', "`"$shared`""
-)
+$argString = "-NoProfile -ExecutionPolicy Bypass -File `"$script`" -LocalCopyDir `"`" -SharedPath `"$shared`""
+$action = New-ScheduledTaskAction -Execute 'pwsh.exe' -Argument $argString
 $trigger = New-ScheduledTaskTrigger -Daily -At '03:33'
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
@@ -35,7 +39,11 @@ $settings = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries `
     -ExecutionTimeLimit (New-TimeSpan -Hours 1)
 
-$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+# Run as the logged-in user, NOT SYSTEM: the GDrive mount (G:) is per-user —
+# under SYSTEM the offsite path does not exist and the backup silently degrades
+# (incident 2026-06-12 03:33). Same principal as Qdrant-Snapshot-Daily (Interactive).
+$user = "$env:USERDOMAIN\$env:USERNAME"
+$principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive
 
 Register-ScheduledTask `
     -TaskName $taskName `
@@ -45,4 +53,13 @@ Register-ScheduledTask `
     -Principal $principal `
     -Description 'Daily pg_dump backup of unified_store (ai-01) to GDrive offsite'
 
-Write-Host "Registered: $taskName (daily 03:33, SYSTEM, Highest)"
+Write-Host "Registered: $taskName (daily 03:33, $user, Interactive)"
+Write-DebugLog "SUCCESS: $taskName registered"
+} catch {
+    Write-Host "ERROR: $($_.Exception.Message)"
+    Write-DebugLog "ERROR: $($_.Exception.Message)"
+    Write-DebugLog "StackTrace: $($_.ScriptStackTrace)"
+}
+
+# Keep window open for 3 seconds so user can see the result
+Start-Sleep -Seconds 3
