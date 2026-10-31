@@ -10,7 +10,9 @@
       1. POISON-GUARD: query pg_tables; abort (exit 2) if conversations table is
          missing or has fewer rows than -MinRows.
       2. pg_dump in custom format (-Fc) via docker exec.
-      3. Copy to GDrive offsite (-SharedPath) and local disk (-LocalCopyDir).
+      3. Copy to GDrive offsite (-SharedPath) and local disk (-LocalCopyDir),
+         bounded retry (3 attempts, 120 s apart) per destination — one leg
+         failing must not kill the others (incident 2026-10-30).
       4. SIZE-GUARD: if the new dump is < 50% of the largest existing one, skip
          retention and warn.
       5. Retention: 30 daily + 4 weekly Mondays (per destination).
@@ -188,13 +190,28 @@ if ($missing.Count -eq 0) {
 }
 
 # Fan out the source file to every missing destination.
+# Bounded retry per destination: a transient DriveFS warm-up / USB hiccup must
+# not lose the whole day (incident 2026-10-30: one terminating Copy-Item killed
+# the run after "Dump created" — GDrive folder left empty, no further log line).
+$copyFailures = @()
 if ($sourceFile) {
     foreach ($d in $missing) {
         $dayDir = "$($d.Root)/$today"
         if ($PSCmdlet.ShouldProcess("$dayDir/$dumpLeaf", "copy dump to $($d.Name)")) {
-            if (-not (Test-Path $dayDir)) { New-Item -ItemType Directory -Path $dayDir -Force | Out-Null }
-            Copy-Item -Path $sourceFile -Destination "$dayDir/$dumpLeaf" -Force
-            Write-Log "Copied to $($d.Name): $dayDir/$dumpLeaf"
+            $copied = $false
+            foreach ($attempt in 1..3) {
+                try {
+                    if (-not (Test-Path $dayDir)) { New-Item -ItemType Directory -Path $dayDir -Force | Out-Null }
+                    Copy-Item -Path $sourceFile -Destination "$dayDir/$dumpLeaf" -Force -ErrorAction Stop
+                    Write-Log "Copied to $($d.Name): $dayDir/$dumpLeaf"
+                    $copied = $true
+                    break
+                } catch {
+                    Write-Log "Copy attempt $attempt/3 to $($d.Name) failed: $($_.Exception.Message)" 'WARN'
+                    if ($attempt -lt 3) { Start-Sleep -Seconds 120 }
+                }
+            }
+            if (-not $copied) { $copyFailures += $d.Name }
         }
     }
 }
@@ -205,6 +222,11 @@ if ($tmp -and (Test-Path $tmp)) { Remove-Item $tmp -Force -ErrorAction SilentlyC
 foreach ($d in $destinations) {
     $root = $d.Root
     if (-not (Test-Path $root)) { Write-Log "No root yet for $($d.Name) ($root); retention skipped"; continue }
+
+    # Never prune a destination that is missing today's dump (copy failed or
+    # skipped): retention there could delete the oldest good day for nothing.
+    $hasToday = @(Get-ChildItem -Path "$root/$today" -Filter '*.dump' -File -ErrorAction SilentlyContinue).Count -gt 0
+    if (-not $hasToday) { Write-Log "Retention ($($d.Name)) skipped: today's dump not present"; continue }
 
     # SIZE-GUARD: if the new dump is anomalously small vs the biggest existing, skip retention.
     if ($newDumpSize -gt 0) {
@@ -238,5 +260,9 @@ foreach ($d in $destinations) {
     Write-Log "Retention ($($d.Name)) complete: kept=$($keep.Count) deleted=$deleted"
 }
 
+if ($copyFailures.Count -gt 0) {
+    Write-Log "Backup INCOMPLETE: copy failed for: $([string]::Join(',', $copyFailures)) (other legs may hold today's dump)" 'ERROR'
+    exit 3
+}
 Write-Log 'Backup done'
 exit 0
