@@ -45,6 +45,12 @@ if (-not (Test-Path $shared)) {
 # ========== 1. REGENERATE THE HIDDEN LAUNCHER VBS ==========
 $pwshArgs = "-NoProfile -ExecutionPolicy Bypass -File `"$script`" -LocalCopyDir `"$localDir`" -SharedPath `"$shared`" -MinRows $minRows"
 $vbsInner = $pwshArgs.Replace('"', '""')   # VBS doubles quotes inside a string literal
+# Build the Run() line in a PLAIN ASSIGNMENT first. Tested-and-rejected (2026-10-31):
+# writing `'a' + $var + 'b',` inline inside the multiline @() literal made PowerShell
+# emit the three operands as SEPARATE array elements (22/200/11 chars) — a VBS with
+# the run line chopped into 3 lines, syntax-invalid, backup dead. Assignment-then-
+# reference produces the correct single 233-char line.
+$vbsRunLine = 'rc = sh.Run("pwsh.exe ' + $vbsInner + '", 0, True)'
 $vbsLines = @(
     "' Genere par D:\postgres\myia_postgres\scripts\setup-backup-schtasks.ps1 -- NE PAS EDITER A LA MAIN.",
     "' Tache      : $taskName",
@@ -55,7 +61,7 @@ $vbsLines = @(
     'Option Explicit',
     'Dim sh, rc',
     'Set sh = CreateObject("WScript.Shell")',
-    'rc = sh.Run("pwsh.exe ' + $vbsInner + '", 0, True)',
+    $vbsRunLine,
     'WScript.Quit rc'
 )
 $vbsDir = Split-Path $vbsPath
